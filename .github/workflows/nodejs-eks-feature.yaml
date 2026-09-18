@@ -26,9 +26,9 @@ jobs:
         ls -l
      - name: read version
        id: version
-       run:
-          VERSION=$(jq -r '.version' package.json)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+       run: |
+        VERSION=$(jq -r '.version' package.json)
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      -name: print version
-       ruhn: echo "The version is ${{ steps.package-version.outputs.version }}"
+     - name: print version
+       run: echo "The version is ${{ steps.version.outputs.version }}"
