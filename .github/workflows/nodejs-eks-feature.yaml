@@ -11,7 +11,7 @@ on:
         required: true
         type: string
 
-environment:
+env:
   project: ${{ inputs.project }}
   component: ${{ inputs.component }}
 jobs: 
