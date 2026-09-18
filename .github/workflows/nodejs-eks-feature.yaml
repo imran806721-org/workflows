@@ -15,7 +15,7 @@ environment:
   project: ${{ inputs.project }}
   component: ${{ inputs.component }}
 jobs: 
-   build-nodejs:
+  build-nodejs:
      runs-on: ubuntu-latest
      steps:
      - name: checkout code
