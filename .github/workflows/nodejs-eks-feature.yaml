@@ -88,5 +88,5 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Unit tests
+      - name: Unit-tests
         run: npm test
