@@ -1,11 +1,59 @@
-name : nodejs eks feature
-on: 
+# name : nodejs eks feature
+# on: 
+#   workflow_call:
+#     inputs:
+#       project:
+#         description: 'Project name'
+#         required: true
+#         type: string
+#       component:
+#         description: 'Component name'
+#         required: true
+#         type: string
+
+# env:
+#   project: ${{ inputs.project }}
+#   component: ${{ inputs.component }}
+# jobs: 
+#   build-nodejs:
+#     #  runs-on: ubuntu-latest
+#     runs-on: 
+#       group: roboshop
+#       labels: nodejs
+#     steps:
+#      - name: checkout code
+#        uses: actions/checkout@v7  # these are like jenkins plugins
+       
+#      - name: list files
+#        run:
+#         ls -l
+#      - name: read version
+#        id: version
+#        run: |
+#         VERSION=$(jq -r '.version' package.json)
+#         echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+#      - name: print version
+#        run: echo "The version is ${{ steps.version.outputs.version }}"
+       
+#      - name: install dependencies
+#        run: npm install
+
+#      - name: unit tests
+#        run: npm test
+       
+
+
+name: nodejs eks feature
+
+on:
   workflow_call:
     inputs:
       project:
         description: 'Project name'
         required: true
         type: string
+
       component:
         description: 'Component name'
         required: true
@@ -14,34 +62,31 @@ on:
 env:
   project: ${{ inputs.project }}
   component: ${{ inputs.component }}
-jobs: 
+
+jobs:
   build-nodejs:
-    #  runs-on: ubuntu-latest
-    runs-on: 
+    runs-on:
       group: roboshop
       labels: nodejs
+
     steps:
-     - name: checkout code
-       uses: actions/checkout@v7  # these are like jenkins plugins
-       
-     - name: list files
-       run:
-        ls -l
-     - name: read version
-       id: version
-       run: |
-        VERSION=$(jq -r '.version' package.json)
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-     - name: print version
-       run: echo "The version is ${{ steps.version.outputs.version }}"
-       
-     - name: install dependencies
-       run: npm install
+      - name: List files
+        run: ls -l
 
-     - name: unit tests
-       run: npm test
-       
+      - name: Read version
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Print version
+        run: echo "The version is ${{ steps.version.outputs.version }}"
 
-       
+      - name: Install dependencies
+        run: npm install
+
+      - name: Unit tests
+        run: npm test
