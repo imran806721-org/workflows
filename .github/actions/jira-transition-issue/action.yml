@@ -1,0 +1,50 @@
+name: jira-transition-issue
+description: Best-effort transition of a Jira issue to a target status by name — GitHub Actions equivalent of utils.safeTransitionJiraIssue()
+# Matches by the target status's name rather than the transition's own label,
+# since transition labels drawn in the workflow diagram aren't guaranteed to
+# be set to anything meaningful. Never fails the caller job — a Jira-side
+# hiccup here must never fail an otherwise-successful (or already-failed) stage.
+inputs:
+  issue_key:
+    required: true
+  target_status:
+    required: true
+  jira_base_url:
+    required: true
+  jira_email:
+    required: true
+  jira_api_token:
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        current=$(curl -sf -u "${{ inputs.jira_email }}:${{ inputs.jira_api_token }}" \
+          -H "Accept: application/json" \
+          "${{ inputs.jira_base_url }}/rest/api/3/issue/${{ inputs.issue_key }}?fields=status" \
+          | jq -r '.fields.status.name') || {
+            echo "Warning: could not fetch ${{ inputs.issue_key }} to check its current status"
+            exit 0
+          }
+
+        if [ "$current" == "${{ inputs.target_status }}" ]; then
+          echo "${{ inputs.issue_key }} is already at '${{ inputs.target_status }}' — nothing to do"
+          exit 0
+        fi
+
+        transition_id=$(curl -sf -u "${{ inputs.jira_email }}:${{ inputs.jira_api_token }}" \
+          -H "Accept: application/json" \
+          "${{ inputs.jira_base_url }}/rest/api/3/issue/${{ inputs.issue_key }}/transitions" \
+          | jq -r --arg target "${{ inputs.target_status }}" '.transitions[] | select(.to.name == $target) | .id' | head -n1)
+
+        if [ -z "$transition_id" ]; then
+          echo "Warning: no available transition to status '${{ inputs.target_status }}' for ${{ inputs.issue_key }}"
+          exit 0
+        fi
+
+        curl -sf -u "${{ inputs.jira_email }}:${{ inputs.jira_api_token }}" \
+          -X POST -H "Content-Type: application/json" \
+          --data "$(jq -n --arg id "$transition_id" '{transition: {id: $id}}')" \
+          "${{ inputs.jira_base_url }}/rest/api/3/issue/${{ inputs.issue_key }}/transitions" \
+          || echo "Warning: failed to transition ${{ inputs.issue_key }} to '${{ inputs.target_status }}'"
